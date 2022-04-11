@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from src.Services import *
 from src.Services.FilesService.FilesService import FilesService
+from src.Services.SettingsService.SettingsService import SettingsService
 
 
 class Container(containers.DeclarativeContainer):
@@ -21,11 +22,16 @@ class Container(containers.DeclarativeContainer):
         fname="logging.ini",
     )
 
+    # Services
     database_engine = providers.Singleton(
         create_engine, "sqlite://db.sqlite"
     )
 
     files_db_service = providers.Factory(
         FilesService, database_engine
+    )
+
+    settings_service = providers.Factory(
+        SettingsService, Path("settings.json")
     )
 
