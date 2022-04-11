@@ -1,8 +1,7 @@
 from dependency_injector.wiring import Provide, inject
-
 from src.Container.Container import Container
 from src.Services.SettingsService.SettingsService import SettingsService
-
+import ffmpeg
 
 @inject
 def test(settings: SettingsService = Provide[Container.settings_service]):
