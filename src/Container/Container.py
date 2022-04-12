@@ -27,7 +27,7 @@ class Container(containers.DeclarativeContainer):
         create_engine, "sqlite://db.sqlite"
     )
 
-    files_db_service = providers.Factory(
+    files_service = providers.Factory(
         FilesService, database_engine
     )
 

@@ -13,4 +13,3 @@ class File(Base):
     file_name = Column(String(200))
     c_time = Column(Integer)
     m_time = Column(Integer)
-    hash = Column(String(100))

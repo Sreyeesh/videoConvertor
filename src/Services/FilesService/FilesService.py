@@ -35,7 +35,6 @@ class FilesService(BaseService):
         self._path_checks(file_path)
 
         stats = file_path.stat()
-        hash_ = self._hash(file_path)
         with Session(self.engine) as session:
             stmt = select(File).where(File.absolute_path == str(file_path))
             file = session.scalar(stmt)
@@ -43,7 +42,6 @@ class FilesService(BaseService):
                 raise InvalidPath("No such file_path in database. Use create_file instead.")
             file.c_time = stats.st_ctime
             file.m_time = stats.st_mtime
-            file.hash = hash_
             session.add(file)
             session.commit()
 
@@ -51,13 +49,12 @@ class FilesService(BaseService):
         self._path_checks(file_path)
         stats = file_path.stat()
 
-        hash_ = self._hash(file_path)
+        #hash_ = self._hash(file_path)
         with Session(self.engine) as session:
             db_entry = File(
                 absolute_path=str(file_path),
                 c_time=stats.st_ctime,
-                m_time=stats.st_mtime,
-                hash=hash_
+                m_time=stats.st_mtime
             )
             session.add(db_entry)
             session.commit()
@@ -66,4 +63,13 @@ class FilesService(BaseService):
         with Session(self.engine) as session:
             stmt = select(File).where(File.absolute_path == str(path))
             return session.scalar(stmt)
+
+    def has_changed(self, path: Path):
+        with Session(self.engine) as session:
+            stmt = select(File).where(File.absolute_path == str(path))
+            from_db = session.scalar(stmt)
+            abs_path = from_db.absolute_path == str(path)
+            ctime = from_db.c_time == path.stat().st_ctime
+            mtime = from_db.m_time == path.stat().st_mtime
+            return abs_path == ctime == mtime == True
 

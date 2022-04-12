@@ -1,5 +1,6 @@
 import platform
 import random
+import time
 import unittest
 import os
 import string
@@ -61,15 +62,3 @@ class TestFilesService(unittest.TestCase):
         path = self.files_service.get_by_absolute_path(self.tmp_file_path2)
         self.assertEqual(path.absolute_path, str(self.tmp_file_path2))
 
-    def test_update_file_entry_works(self):
-        with open(self.tmp_file_path2, "w") as fh:
-            fh.write("BAFUR!")
-
-        m = sha256()
-        m.update(self.tmp_file_path2.read_bytes())
-        hash_ = m.hexdigest()
-
-        self.assertNotEqual(hash_, self.files_service.get_by_absolute_path(
-            self.tmp_file_path2).hash)
-        self.files_service.update_file_entry(self.tmp_file_path2)
-        self.assertEqual(hash_, self.files_service.get_by_absolute_path(self.tmp_file_path2).hash)
