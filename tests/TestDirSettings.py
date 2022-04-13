@@ -2,7 +2,7 @@ import os
 import unittest
 from pathlib import Path
 
-from Auxialiry import get_temp_files_dir
+from tests.Auxialiry import get_temp_files_dir
 from src.DirsSettings import DirsSettings
 
 
@@ -12,7 +12,7 @@ class TestDirSettings(unittest.TestCase):
         tmp_dir = get_temp_files_dir()
         os.chdir(tmp_dir)
 
-        cwd = Path(".")
+        cwd = Path("")
         self.in_dir = cwd / Path("in_dir")
         self.out_dir = cwd / Path("out_dir")
         self.in_dir.mkdir()

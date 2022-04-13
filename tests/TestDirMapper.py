@@ -1,10 +1,9 @@
-import platform
 import unittest
 import os
 from pathlib import Path
 
 from src.DirMapper import DirMapper
-from Auxialiry import get_temp_files_dir
+from tests.Auxialiry import get_temp_files_dir
 
 
 class TestDirMapper(unittest.TestCase):

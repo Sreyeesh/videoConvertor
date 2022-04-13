@@ -19,8 +19,9 @@ class ParseArgs(argparse.ArgumentParser):
     def populate_options(self):
         name = self.add_argument("--name", type=str,
                                  help=f"All configs should have a name. [{', '.join(self.names)}]",
-                                 required=True)
+                                 required=False)
         dirs = self.add_argument_group("DIRS")
+        dirs.add_argument("--nogui", action="store_true", default=False)
         dirs.add_argument("--delete-setup", action="store_true", default=False)
         dirs.add_argument("--run-all", action="store_true", default=False)
         dirs.add_argument("--in-dir", type=str)

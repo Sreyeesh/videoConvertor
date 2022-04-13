@@ -1,7 +1,9 @@
 import json
+import sys
 from pathlib import Path
 import ffmpeg
 
+from src.Gui import VideoConvertor
 from src.ParseArgs import ParseArgs
 from src.DirsSettings import DirsSettings
 
@@ -11,7 +13,11 @@ if __name__ == "__main__":
     names = [x.get("name") for x in settings]
     p = ParseArgs(names, str(Path(__file__).parts[-1]))
     args = p.parse_args()
-    if args.run_all:
+    if not args.nogui:
+        root_window = VideoConvertor()
+        root_window.mainloop()
+        sys.exit()
+    elif args.run_all:
         pass  # Encode
     elif args.delete_setup:
         dirs.delete_setup(args.name)
