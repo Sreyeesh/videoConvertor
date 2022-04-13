@@ -1,3 +1,15 @@
-{
-  "somekey": "some_val"
-}
+[
+  {
+    "in_dir": ".",
+    "out_dir": "./vids",
+    "out_ftype": "mp4",
+    "audio_brate": 128,
+    "video_brate": 400,
+    "video_res": [
+      1024,
+      768
+    ],
+    "add_ext": "yt",
+    "name": "TestSetup"
+  }
+]

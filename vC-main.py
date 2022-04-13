@@ -1,0 +1,26 @@
+import json
+from pathlib import Path
+
+from src.ParseArgs import ParseArgs
+from src.DirsSettings import DirsSettings
+
+if __name__ == "__main__":
+    dirs = DirsSettings("settings.json")
+    settings = dirs.get_settings()
+    names = [x.get("name") for x in settings]
+    p = ParseArgs(names, str(Path(__file__).parts[-1]))
+    args = p.parse_args()
+    if args.delete_setup:
+        dirs.delete_setup(args.name)
+    else:
+        entry = {
+            "in_dir": args.in_dir,
+            "out_dir": args.out_dir,
+            "out_ftype": args.out_ftype,
+            "audio_brate": args.audio_brate,
+            "video_brate": args.video_brate,
+            "video_res": args.video_res,
+            "add_ext": args.add_ext,
+            "name": args.name
+        }
+        dirs.save_new_entry(entry)
