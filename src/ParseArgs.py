@@ -22,6 +22,7 @@ class ParseArgs(argparse.ArgumentParser):
                                  required=True)
         dirs = self.add_argument_group("DIRS")
         dirs.add_argument("--delete-setup", action="store_true", default=False)
+        dirs.add_argument("--run-all", action="store_true", default=False)
         dirs.add_argument("--in-dir", type=str)
         dirs.add_argument("--out-dir", type=str)
         dirs.add_argument("--add-ext", type=str, help="File naming postfix for output.")

@@ -11,7 +11,9 @@ if __name__ == "__main__":
     names = [x.get("name") for x in settings]
     p = ParseArgs(names, str(Path(__file__).parts[-1]))
     args = p.parse_args()
-    if args.delete_setup:
+    if args.run_all:
+        pass  # Encode
+    elif args.delete_setup:
         dirs.delete_setup(args.name)
     else:
         entry = {
