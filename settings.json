@@ -1,3 +1,15 @@
-{
-  "somekey": "some_val"
-}
+[
+  {
+    "in_dir": "C:\\Users\\mkuja\\source\\repos\\videoConvertor\\data\\samples\\inputs",
+    "out_dir": "C:\\Users\\mkuja\\source\\repos\\videoConvertor\\data\\samples\\out_dir",
+    "out_ftype": "mp4",
+    "audio_brate": 96,
+    "video_brate": 300,
+    "video_res": [
+      640,
+      480
+    ],
+    "add_ext": "_discord",
+    "name": "test"
+  }
+]
