@@ -1,15 +1,15 @@
 [
   {
-    "in_dir": "C:\\Users\\mkuja\\source\\repos\\videoConvertor\\data\\samples\\inputs",
-    "out_dir": "C:\\Users\\mkuja\\source\\repos\\videoConvertor\\data\\samples\\out_dir",
+    "in_dir": "/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/inputs",
+    "out_dir": "/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/outputs",
     "out_ftype": "mp4",
-    "audio_brate": 96,
-    "video_brate": 300,
+    "audio_brate": 128,
+    "video_brate": 400,
     "video_res": [
-      640,
-      480
+      800,
+      600
     ],
     "add_ext": "_discord",
-    "name": "test"
+    "name": "CurryFuryDiscord"
   }
 ]
