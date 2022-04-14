@@ -5,7 +5,8 @@ import ffmpeg
 from src.Gui import VideoConvertor
 from src.ParseArgs import ParseArgs
 from src.DirsSettings import DirsSettings
-
+import compression
+import thumbs
 if __name__ == "__main__":
     dirs = DirsSettings("settings.json")
     settings = dirs.get_settings()
@@ -17,7 +18,7 @@ if __name__ == "__main__":
         root_window.mainloop()
         sys.exit()
     elif args.run_all:
-        pass  # Encode
+      compression.reduce_dem_all()
     elif args.delete_setup:
         dirs.delete_setup(args.name)
     else:
@@ -32,3 +33,4 @@ if __name__ == "__main__":
             "name": args.name
         }
         dirs.save_new_entry(entry)
+ 
