@@ -6,7 +6,7 @@ from src.Gui import VideoConvertor
 from src.ParseArgs import ParseArgs
 from src.DirsSettings import DirsSettings
 import compression
-import thumbs
+# import thumbs
 if __name__ == "__main__":
     dirs = DirsSettings("settings.json")
     settings = dirs.get_settings()
