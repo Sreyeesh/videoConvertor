@@ -1,11 +1,13 @@
 from moviepy.editor import *
 from src.DirMapper import DirMapper
+from src.DirsSettings import DirsSettings
+
 
 video_inputs = VideoFileClip('/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/inputs/DJI_0513.MP4')
 video_outputs = video_inputs.resize(0.5)
 
 def reduce_dem_all():
-    d_mapper = DirMapper(DirsSettings().get_settings())
+    d_mapper = DirMapper(DirsSettings('/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/settings.json').get_settings())
     for inf, of, settings in d_mapper.get_dir_mappings():
         # Calculate resize factor from Y-axis.
         reduce_size(inf, of, settings.get("video_res"))

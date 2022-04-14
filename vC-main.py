@@ -2,7 +2,6 @@ import json
 import sys
 from pathlib import Path
 import ffmpeg
-
 from src.Gui import VideoConvertor
 from src.ParseArgs import ParseArgs
 from src.DirsSettings import DirsSettings

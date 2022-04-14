@@ -4,7 +4,7 @@ from moviepy.editor import *
 from PIL import Image
 
 
-original_path = os.path.join(SAMPLE_INPUTS, '/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/inputs/sample.mp4')
+original_path = os.path.join(SAMPLE_INPUTS, '/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/inputs/DJI_0513.MP4')
 thumbnail_directory = os.path.join(SAMPLE_OUTPUTS, "/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/thumbnails")
 clip = VideoFileClip(original_path)
 
