@@ -2,6 +2,8 @@ import json
 import sys
 from pathlib import Path
 import ffmpeg
+
+import compression
 from src.Gui import VideoConvertor
 from src.ParseArgs import ParseArgs
 from src.DirsSettings import DirsSettings
@@ -16,8 +18,8 @@ if __name__ == "__main__":
         root_window = VideoConvertor()
         root_window.mainloop()
         sys.exit()
-    elif args.run_all:
-        pass  # Encode
+    if args.run_all:
+        compression.reduce_dem_all()
     elif args.delete_setup:
         dirs.delete_setup(args.name)
     else:
