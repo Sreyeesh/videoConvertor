@@ -1,5 +1,8 @@
 import os.path
+import threading
 import tkinter as tk
+from dataclasses import dataclass
+from threading import Lock
 from tkinter import filedialog
 from tkinter import simpledialog
 import ttkbootstrap as ttk
@@ -7,6 +10,25 @@ from ttkbootstrap.constants import *
 
 from compression import reduce_dem_all
 from src.DirsSettings import DirsSettings
+
+
+class RecoderData:
+
+    def __init__(self):
+        self.lock = Lock()
+        self.progress = dict()
+        self._thread_is_done = False
+
+    @property
+    def job_is_ready(self):
+        return self._thread_is_done if not self.lock.locked() else False
+
+    def set_progress(self, out_file: str, percentage: float):
+        # self.lock.acquire()
+        self.progress[out_file] = percentage
+        # self.lock.release()
+recorder_data = RecoderData()  # For worker thread to write status info
+
 
 
 class MenuBar(ttk.Frame):
@@ -27,10 +49,18 @@ class MenuBar(ttk.Frame):
 
         self.scan_button = MenuButton(master=self, text="Quit")
         self.scan_button.grid(column=3, row=0)
+        self.t_worker = None
 
     def run_all(self):
-        d = DirsSettings("settings.json")
-        reduce_dem_all(d.get_settings())
+        if not self.t_worker:
+            self.t_worker = threading.Thread(target=self._run_all)
+        elif recorder_data.job_is_ready:
+            self.t_worker.join()
+            self.t_worker = threading.Thread(target=self._run_all)
+
+    def _run_all(self):
+        reduce_dem_all()
+
 
 
 class AddMappingDialog(simpledialog.Dialog):
@@ -61,6 +91,7 @@ class AddMappingDialog(simpledialog.Dialog):
             "audio_bitrate_kbps": int(str(self.audio_bitrate.get())),
             "video_bitrate_mbps": float(self.video_bitrate.get()),
             "output_file_postfix": str(self.video_name_postfix.get()),
+            "output_video_resolution": self.video_res.get(),
             "name": self.config_name_strvar.get()
         }
 
