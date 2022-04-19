@@ -5,6 +5,7 @@ from tkinter import simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
+from compression import reduce_dem_all
 from src.DirsSettings import DirsSettings
 
 
@@ -16,7 +17,7 @@ class MenuBar(ttk.Frame):
         self.scan_button = MenuButton(master=self, text="Scan")
         self.scan_button.grid(column=0, row=0)
 
-        self.scan_button = MenuButton(master=self, text="Run")
+        self.scan_button = MenuButton(master=self, text="Run", command=self.run_all)
         self.scan_button.grid(column=1, row=0)
 
         self.scan_button = MenuButton(master=self,
@@ -26,6 +27,10 @@ class MenuBar(ttk.Frame):
 
         self.scan_button = MenuButton(master=self, text="Quit")
         self.scan_button.grid(column=3, row=0)
+
+    def run_all(self):
+        d = DirsSettings("settings.json")
+        reduce_dem_all(d.get_settings())
 
 
 class AddMappingDialog(simpledialog.Dialog):
