@@ -26,7 +26,7 @@ if __name__ == "__main__":
         entry = {
             "in_dir": args.in_dir,
             "out_dir": args.out_dir,
-            "out_ftype": args.out_ftype,
+            "out_ftype": args.out_ftype,  # Always mp4
             "audio_brate": args.audio_brate,
             "video_brate": args.video_brate,
             "video_res": args.video_res,
