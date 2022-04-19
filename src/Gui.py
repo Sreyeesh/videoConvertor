@@ -61,9 +61,9 @@ class AddMappingDialog(simpledialog.Dialog):
 
     def buttonbox(self):
         self.ok_button = tk.Button(self, text='OK', width=5, command=self.ok_pressed)
-        self.ok_button.pack(side="left")
+        self.ok_button.pack(side="right")
         cancel_button = tk.Button(self, text='Cancel', width=5, command=self.cancel_pressed)
-        cancel_button.pack(side="right")
+        cancel_button.pack(side="left")
         self.bind("<Return>", lambda event: self.ok_pressed())
         self.bind("<Escape>", lambda event: self.cancel_pressed())
 

@@ -28,8 +28,3 @@ def reduce_size(file_in, file_out, resolution):
 
     print("This is the size of the new video: ", end=" ")
     print(str(width_2) + "x", str(height_2))
-
-    # video_outputs.ipython_display(width=480)
-
-
-reduce_dem_all()
