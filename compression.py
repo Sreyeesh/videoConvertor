@@ -3,6 +3,20 @@ from src.DirMapper import DirMapper
 from src.DirsSettings import DirsSettings
 
 
+# TODO: reduce_size should be written to accommodate the following options.
+# [  # EXAMPLE. Something like this is what you get from gui, when user clicks `Run all`.
+#   {
+#     "in_dir": "C:/Users/mkuja/source/repos/videoConvertor/data/samples/inputs",
+#     "out_dir": "C:/Users/mkuja/source/repos/videoConvertor/data/samples/output",
+#     "out_ftype": "mp4",
+#     "audio_bitrate_kbps": 128,
+#     "video_bitrate_mbps": 0.8,
+#     "output_file_postfix": "_example",
+#     "name": "My SomeProfile"
+#   }
+# ]
+
+
 def reduce_dem_all():
     d_mapper = DirMapper(DirsSettings('settings.json').get_settings())
     for inf, of, settings in d_mapper.get_dir_mappings():
