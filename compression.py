@@ -1,13 +1,31 @@
+from pathlib import Path
+
 from moviepy.editor import *
 from src.DirMapper import DirMapper
 from src.DirsSettings import DirsSettings
 
 
-def reduce_dem_all():
-    d_mapper = DirMapper(DirsSettings('settings.json').get_settings())
-    for inf, of, settings in d_mapper.get_dir_mappings():
+def reduce_dem_all(settings=None):
+    if not settings:
+        settings = DirsSettings('settings.json').get_settings()
+    d_map = DirMapper(settings)
+    # Filter only those jobs for which target doesn't exist.
+    d_map = [x for x in d_map.get_dir_mappings() if not x[1].exists()]
+    for inf, of, settings in d_map:
         # Calculate resize factor from Y-axis.
-        reduce_size(str(inf), str(of), settings)
+        recode(str(inf), str(of), settings)
+
+
+def recode(in_file: str, out_file: str, settings):
+    x, y = [int(a) for a in settings["output_video_resolution"].split("x")]
+    with VideoFileClip(in_file, target_resolution=(y, x)) as clip:
+        clip.write_videofile(out_file,
+                             fps=None,  # TODO: configurable out-file fps
+                             audio_codec="libmp3lame",
+                             audio_bitrate=str(settings["audio_bitrate_kbps"]) + "K",
+                             preset="placebo",
+                             threads=4,  # TODO: Configurable threads.
+                             logger=None)
 
 
 def reduce_size(file_in, file_out, settings):
@@ -35,4 +53,5 @@ def reduce_size(file_in, file_out, settings):
     height_2 = video_outputs.h
 
     print("This is the size of the new video: ", end=" ")
+    print(str(width_2) + "x", str(height_2))
     print(str(width_2) + "x", str(height_2))

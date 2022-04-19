@@ -1,4 +1,6 @@
 .idea
 venv
 *__pycache__
-data/samples/out_dir
+data/samples/output
+settings.json
+*.DS_Store*
