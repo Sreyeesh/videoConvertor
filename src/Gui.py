@@ -1,31 +1,74 @@
+import os.path
 import tkinter as tk
+from tkinter import filedialog
+from tkinter import simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
 
-
-
-class TopBar(ttk.Frame):
+class MenuBar(ttk.Frame):
 
     def __init__(self, container):
-        super(TopBar, self).__init__(container)
-        # Them buttons
+        super(MenuBar, self).__init__(container)
+
         self.scan_button = MenuButton(master=self, text="Scan")
-        self.scan_button.pack(side="left")
+        self.scan_button.grid(column=0, row=0)
+
         self.scan_button = MenuButton(master=self, text="Run")
-        self.scan_button.pack(side="left")
-        self.scan_button = MenuButton(master=self, text="Add Mapping")
-        self.scan_button.pack(side="left")
+        self.scan_button.grid(column=1, row=0)
+
+        self.scan_button = MenuButton(master=self,
+                                      text="Add Mapping",
+                                      command=lambda: AddMappingDialog(self, "Add mapping.."))
+        self.scan_button.grid(column=2, row=0)
+
         self.scan_button = MenuButton(master=self, text="Quit")
-        self.scan_button.pack(side="right")
+        self.scan_button.grid(column=3, row=0)
 
 
-class MainContainer(ttk.Frame):
+class AddMappingDialog(simpledialog.Dialog):
+
+    def __init__(self, parent, title):
+        self.in_dir = None
+        self.out_dir = None
+        self.video_output_resolution = None
+        self.audio_bitrate = None
+        self.video_bitrate = None
+        self.encoding_preset = None
+        self.output_file_ext = None
+        self.input_file_types = []
+        self.postfix_filenames_with = None
+        self.mapping_name = None
+        #self.geometry("600x400")
+        self.container = ttk.Frame(self)
+        self.container.grid()
+
+        self.in_dir_label = ttk.Label(self.container, text="Input directory: ")
+        self.in_dir_label.grid(column=0, row=0)
+        self.in_dir_select = ttk.Button(self.container, text="In dir...", command=self.select_in_dir)
+        self.in_dir_select.grid(column=1, row=0)
+
+
+        super().__init__(parent, title)
+
+    def select_in_dir(self):
+        ft = ("All files", "*.*")
+        dirname = filedialog.askopenfilename(
+            title='Open a dir',
+            initialdir=os.path.expanduser("~"),
+            filetypes=ft)
+        self.in_dir = dirname
+
+    def body(self, frame):
+        pass
+
+
+class JobsContainer(ttk.Frame):
 
     def __init__(self, container):
-        super(MainContainer, self).__init__(container)
+        super(JobsContainer, self).__init__(container)
         self.job = Job("foo.avi", "foo_discord.mp4", 50)
-        self.job.pack(side="top")
+        self.job.grid(column=0, row=1, columnspan=4)
 
 
 class MenuButton(ttk.Button):
@@ -50,7 +93,6 @@ class JobGauge(ttk.Floodgauge):
         self.configure(value=50)
 
 
-
 class Job(ttk.Frame):
 
     def __init__(self, from_file: str, to_file: str, percent: int, *args, **kwargs):
@@ -60,18 +102,18 @@ class Job(ttk.Frame):
         self.from_file = from_file
 
         self.open_folder_button = OpenFolderButton(master=self, text="Open Source Folder")
-        self.open_folder_button.pack(side="left", fill="y")
+        self.open_folder_button.grid(column=0, row=0, sticky="NS")
 
         self.open_folder_button = OpenFolderButton(master=self, text="Open Target Folder")
-        self.open_folder_button.pack(side="left", fill="y")
+        self.open_folder_button.grid(column=1, row=0, sticky="NS")
 
         self.gauge = JobGauge(master=self, mask=f"{percent}%")
-        self.gauge.pack(side="left", fill="y")
+        self.gauge.grid(column=2, row=0, sticky="NS")
 
         self.description = ttk.Label(master=self, text=f"{from_file} => {to_file}",
                                      font=(None, 18, "normal"),
                                      padding=(20, 0, 0, 0))
-        self.description.pack(side="left")
+        self.description.grid(column=3, row=0, sticky="NS")
 
         self.gauge.update_gauge(percent)
 
@@ -85,10 +127,10 @@ class VideoConvertor(tk.Tk):
         self.title("VideoConvertor")
         self.geometry("1024x768")
 
-        self.top_bar = TopBar(self)
-        self.top_bar.pack(side="top", anchor="n")
+        self.menu_bar = MenuBar(self)
+        self.menu_bar.grid(column=0, row=0, sticky="EW")
 
-        self.top_bar = MainContainer(self)
-        self.top_bar.pack(side="top")
+        self.top_bar = JobsContainer(self)
+        self.top_bar.grid(column=0, row=1)
 
 
