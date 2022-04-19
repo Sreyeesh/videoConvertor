@@ -29,6 +29,7 @@ class MenuBar(ttk.Frame):
 class AddMappingDialog(simpledialog.Dialog):
 
     def __init__(self, parent, title):
+        super().__init__(parent, title)
         self.in_dir = None
         self.out_dir = None
         self.video_output_resolution = None
@@ -40,27 +41,42 @@ class AddMappingDialog(simpledialog.Dialog):
         self.postfix_filenames_with = None
         self.mapping_name = None
         #self.geometry("600x400")
-        self.container = ttk.Frame(self)
-        self.container.grid()
-
-        self.in_dir_label = ttk.Label(self.container, text="Input directory: ")
-        self.in_dir_label.grid(column=0, row=0)
-        self.in_dir_select = ttk.Button(self.container, text="In dir...", command=self.select_in_dir)
-        self.in_dir_select.grid(column=1, row=0)
-
-
-        super().__init__(parent, title)
 
     def select_in_dir(self):
-        ft = ("All files", "*.*")
-        dirname = filedialog.askopenfilename(
+        dirname = filedialog.askdirectory(
             title='Open a dir',
-            initialdir=os.path.expanduser("~"),
-            filetypes=ft)
+            initialdir=os.path.expanduser("~"))
         self.in_dir = dirname
+        self.in_dir_text_var.set(self.in_dir or "In dir..")
+
+    def select_out_dir(self):
+        dirname = filedialog.askdirectory(
+            title='Open a dir',
+            initialdir=os.path.expanduser("~"))
+        self.out_dir = dirname
+        self.out_dir_text_var.set(self.in_dir or "Out dir..")
 
     def body(self, frame):
-        pass
+        pad = 5
+
+        self.in_dir_label = ttk.Label(frame, text="Input folder: ")
+        self.in_dir_label.grid(column=0, row=0, sticky="W", padx=pad, pady=pad)
+        self.in_dir_text_var = tk.StringVar()
+        self.in_dir_text_var.set("In dir..")
+        self.in_dir_select = ttk.Button(frame,
+                                        textvariable=self.in_dir_text_var,
+                                        command=self.select_in_dir)
+        self.in_dir_select.grid(column=1, row=0, sticky="W", padx=pad, pady=pad)
+
+        self.out_dir_label = ttk.Label(frame, text="Output folder: ")
+        self.out_dir_label.grid(column=0, row=1, sticky="W", padx=pad, pady=pad)
+        self.out_dir_text_var = tk.StringVar()
+        self.out_dir_text_var.set("Out dir..")
+        self.out_dir_select = ttk.Button(frame,
+                                         textvariable=self.out_dir_text_var,
+                                         command=self.select_out_dir)
+        self.out_dir_select.grid(column=1, row=1, sticky="W", padx=pad, pady=pad)
+
 
 
 class JobsContainer(ttk.Frame):
