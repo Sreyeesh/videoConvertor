@@ -5,30 +5,30 @@ from src.DirMapper import DirMapper
 from src.DirsSettings import DirsSettings
 
 
-def reduce_dem_all(settings=None):
-    if not settings:
-        settings = DirsSettings('settings.json').get_settings()
-    d_map = DirMapper(settings)
-    # Filter only those jobs for which target doesn't exist.
-    d_map = [x for x in d_map.get_dir_mappings() if not x[1].exists()]
-    for inf, of, settings in d_map:
-        # Calculate resize factor from Y-axis.
-        recode(str(inf), str(of), settings)
+# def reduce_dem_all(logger = None):
+#     settings = DirsSettings('settings.json').get_settings()
+#     d_map = DirMapper(settings)
+#     # Filter only those jobs for which target doesn't exist.
+#     d_map = [x for x in d_map.get_dir_mappings() if not x[1].exists()]
+#     for inf, of, settings in d_map:
+#         # Calculate resize factor from Y-axis.
+#         recode(str(inf), str(of), settings)
 
 
-def recode(in_file: str, out_file: str, settings):
+def recode(in_file: str, out_file: str, settings, logger=None):
     x, y = [int(a) for a in settings["output_video_resolution"].split("x")]
     with VideoFileClip(in_file, target_resolution=(y, x)) as clip:
+        print(settings["output_fps"])
         clip.write_videofile(out_file,
-                             fps=None,  # TODO: configurable out-file fps
+                             fps=int(settings["output_fps"]),  # TODO: configurable out-file fps
                              audio_codec="libmp3lame",
                              audio_bitrate=str(settings["audio_bitrate_kbps"]) + "K",
                              preset="placebo",
                              threads=4,  # TODO: Configurable threads.
-                             logger=None)
+                             logger=logger)
 
 
-def reduce_size(file_in, file_out, settings):
+def reduce_size(file_in, file_out, settings, logger):
     resolution = settings["video_res"]
     video_inputs = VideoFileClip(file_in)
     # Calculate resize-factor from Y-axis.

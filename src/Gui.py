@@ -8,27 +8,9 @@ from tkinter import simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
-from compression import reduce_dem_all
+from src.DirMapper import DirMapper
 from src.DirsSettings import DirsSettings
-
-
-class RecoderData:
-
-    def __init__(self):
-        self.lock = Lock()
-        self.progress = dict()
-        self._thread_is_done = False
-
-    @property
-    def job_is_ready(self):
-        return self._thread_is_done if not self.lock.locked() else False
-
-    def set_progress(self, out_file: str, percentage: float):
-        # self.lock.acquire()
-        self.progress[out_file] = percentage
-        # self.lock.release()
-recorder_data = RecoderData()  # For worker thread to write status info
-
+from src.GuiCb import JobRunner
 
 
 class MenuBar(ttk.Frame):
@@ -36,38 +18,30 @@ class MenuBar(ttk.Frame):
     def __init__(self, container):
         super(MenuBar, self).__init__(container)
 
-        self.scan_button = MenuButton(master=self, text="Scan")
+        self.scan_button = MenuButton(master=self, text="Scan",
+                                      command=lambda: self.event_generate("<<Scan>>"))
         self.scan_button.grid(column=0, row=0)
 
-        self.scan_button = MenuButton(master=self, text="Run", command=self.run_all)
-        self.scan_button.grid(column=1, row=0)
+        self.run_button = MenuButton(master=self, text="Run",
+                                     command=lambda: self.event_generate("<<RunAll>>"))
+        self.run_button.grid(column=1, row=0)
 
-        self.scan_button = MenuButton(master=self,
-                                      text="Add Mapping",
-                                      command=lambda: AddMappingDialog(self, "Add mapping.."))
-        self.scan_button.grid(column=2, row=0)
+        self.add_mapping_button = MenuButton(master=self,
+                                             text="Add Mapping",
+                                             command=lambda: AddMappingDialog(
+                                                 self,
+                                                 "Add mapping.."))
+        self.add_mapping_button.grid(column=2, row=0)
 
-        self.scan_button = MenuButton(master=self, text="Quit")
-        self.scan_button.grid(column=3, row=0)
-        self.t_worker = None
-
-    def run_all(self):
-        if not self.t_worker:
-            self.t_worker = threading.Thread(target=self._run_all)
-        elif recorder_data.job_is_ready:
-            self.t_worker.join()
-            self.t_worker = threading.Thread(target=self._run_all)
-
-    def _run_all(self):
-        reduce_dem_all()
-
+        self.quit_button = MenuButton(master=self, text="Quit",
+                                      command=lambda: self.event_generate("<<Quit>>"))
+        self.quit_button.grid(column=3, row=0)
 
 
 class AddMappingDialog(simpledialog.Dialog):
 
     def __init__(self, parent, title):
         super().__init__(parent, title)
-        #self.geometry("600x400")
 
     def select_in_dir(self):
         dirname = filedialog.askdirectory(
@@ -92,6 +66,7 @@ class AddMappingDialog(simpledialog.Dialog):
             "video_bitrate_mbps": float(self.video_bitrate.get()),
             "output_file_postfix": str(self.video_name_postfix.get()),
             "output_video_resolution": self.video_res.get(),
+            "output_fps": self.fps_textvar.get(),
             "name": self.config_name_strvar.get()
         }
 
@@ -136,8 +111,8 @@ class AddMappingDialog(simpledialog.Dialog):
 
         self.out_filetype_label = ttk.Label(frame, text="Out file type is always MP4.")
         self.out_filetype_label.grid(column=0, row=2,
-                               columnspan=2, sticky="W",
-                               padx=pad, pady=pad)
+                                     columnspan=2, sticky="W",
+                                     padx=pad, pady=pad)
 
         # Audio bitrate
         self.audio_bitrate_label = ttk.Label(frame, text="Audio bitrate: ")
@@ -148,7 +123,7 @@ class AddMappingDialog(simpledialog.Dialog):
                                                                          "256", "320"))
         self.audio_bitrate_label2 = ttk.Label(frame, text="kbps")
         self.audio_bitrate_label.grid(column=0, row=3, sticky="W", padx=pad, pady=pad)
-        self.audio_bitrate_input.grid(column=1, row=3, sticky="W", pady=pad, padx=pad)
+        self.audio_bitrate_input.grid(column=1, row=3, sticky="W", columnspan=2, pady=pad, padx=pad)
         self.audio_bitrate_label2.grid(column=2, row=3, sticky="W", padx=pad, pady=pad)
 
         # Video bitrate
@@ -157,10 +132,10 @@ class AddMappingDialog(simpledialog.Dialog):
         self.video_bitrate.set("0.4")
         self.video_bitrate_input = ttk.Spinbox(frame, textvariable=self.video_bitrate,
                                                from_=0.1, to=8,
-                                               values=tuple((str(x/10) for x in range(1, 81))))
+                                               values=tuple((str(x / 10) for x in range(1, 81))))
         self.video_bitrate_label2 = ttk.Label(frame, text="Mbps")
         self.video_bitrate_label.grid(column=0, row=4, sticky="W", padx=pad, pady=pad)
-        self.video_bitrate_input.grid(column=1, row=4, sticky="W", pady=pad, padx=pad)
+        self.video_bitrate_input.grid(column=1, row=4, sticky="W", columnspan=2, pady=pad, padx=pad)
         self.video_bitrate_label2.grid(column=2, row=4, sticky="W", padx=pad, pady=pad)
 
         # Video name postfix
@@ -185,26 +160,45 @@ class AddMappingDialog(simpledialog.Dialog):
             text="Encoding preset is always on placebo for smallest file size.")
         self.video_encoding_preset_label.grid(column=0, row=7, padx=pad, pady=pad, sticky="W")
 
+        # Frames per second
+        self.fps_label = ttk.Label(frame, text="Output FPS")
+        self.fps_textvar = tk.IntVar()
+        self.fps_textvar.set(30)
+        self.fps = ttk.Spinbox(frame, textvariable=self.fps_textvar, from_=1, to=144)
+        self.fps_label.grid(column=0, row=8, sticky="W", padx=pad, pady=pad)
+        self.fps.grid(column=1, row=8, sticky="W", padx=pad, pady=pad)
+
         # Configuration name
         self.config_name_label = ttk.Label(frame, text="Unique configuration name: ")
         self.config_name_strvar = tk.StringVar()
         self.config_name_strvar.set("My SomeProfile")
         self.config_name = ttk.Entry(frame, textvariable=self.config_name_strvar)
-        self.config_name_label.grid(column=0, row=8, sticky="W", padx=pad, pady=pad)
-        self.config_name.grid(column=1, row=8, sticky="W", padx=pad, pady=pad)
-
-
-
-
-
+        self.config_name_label.grid(column=0, row=9, sticky="W", padx=pad, pady=pad)
+        self.config_name.grid(column=1, row=9, sticky="W", padx=pad, pady=pad)
 
 
 class JobsContainer(ttk.Frame):
 
     def __init__(self, container):
         super(JobsContainer, self).__init__(container)
-        self.job = Job("foo.avi", "foo_discord.mp4", 50)
-        self.job.grid(column=0, row=1, columnspan=4)
+        self.jobs = []
+
+    def initiate_jobs(self, event=None, job_runner: JobRunner = None):
+        self.scan()
+        job_runner.run_all(self.jobs)
+
+    def scan(self):
+        self.free_job(*self.jobs)
+        settings = DirsSettings("settings.json").get_settings()
+        mappings = DirMapper(settings).get_dir_mappings()
+        mappings = [x for x in mappings if not x[1].exists()]
+        self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0) for x in mappings]
+        for i in range(len(self.jobs)):
+            self.jobs[i].grid(column=0, row=i + 1, columnspan=4)
+
+    def free_job(self, *jobs):
+        for job in jobs:
+            job.destroy()
 
 
 class MenuButton(ttk.Button):
@@ -226,7 +220,7 @@ class JobGauge(ttk.Floodgauge):
                                        font=(None, 13, 'bold'))
 
     def update_gauge(self, val):
-        self.configure(value=50)
+        self.configure(value=val, mask=f"{val:.1f}%")
 
 
 class Job(ttk.Frame):
@@ -243,7 +237,7 @@ class Job(ttk.Frame):
         self.open_folder_button = OpenFolderButton(master=self, text="Open Target Folder")
         self.open_folder_button.grid(column=1, row=0, sticky="NS")
 
-        self.gauge = JobGauge(master=self, mask=f"{percent}%")
+        self.gauge = JobGauge(master=self, mask=f"{percent:.1f}%")
         self.gauge.grid(column=2, row=0, sticky="NS")
 
         self.description = ttk.Label(master=self, text=f"{from_file} => {to_file}",
@@ -266,7 +260,10 @@ class VideoConvertor(tk.Tk):
         self.menu_bar = MenuBar(self)
         self.menu_bar.grid(column=0, row=0, sticky="EW")
 
-        self.top_bar = JobsContainer(self)
-        self.top_bar.grid(column=0, row=1)
+        self.jobs = JobsContainer(self)
+        self.jobs.grid(column=0, row=1)
 
-
+        self.job_runner = JobRunner()
+        self.bind("<<RunAll>>", lambda ev: self.jobs.initiate_jobs(job_runner=self.job_runner))
+        self.bind("<<Scan>>", lambda ev: self.jobs.scan())
+        self.bind("<<Quit>>", lambda ev: self.destroy())
