@@ -8,11 +8,9 @@ from tkinter import simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
-from compression import reduce_dem_all
 from src.DirMapper import DirMapper
 from src.DirsSettings import DirsSettings
 from src.GuiCb import JobRunner
-from src.ProgressBarUpdatingLogger import ProgressBarUpdatingLogger
 
 
 class MenuBar(ttk.Frame):
@@ -68,6 +66,7 @@ class AddMappingDialog(simpledialog.Dialog):
             "video_bitrate_mbps": float(self.video_bitrate.get()),
             "output_file_postfix": str(self.video_name_postfix.get()),
             "output_video_resolution": self.video_res.get(),
+            "output_fps": self.fps_textvar.get(),
             "name": self.config_name_strvar.get()
         }
 
@@ -124,7 +123,7 @@ class AddMappingDialog(simpledialog.Dialog):
                                                                          "256", "320"))
         self.audio_bitrate_label2 = ttk.Label(frame, text="kbps")
         self.audio_bitrate_label.grid(column=0, row=3, sticky="W", padx=pad, pady=pad)
-        self.audio_bitrate_input.grid(column=1, row=3, sticky="W", pady=pad, padx=pad)
+        self.audio_bitrate_input.grid(column=1, row=3, sticky="W", columnspan=2, pady=pad, padx=pad)
         self.audio_bitrate_label2.grid(column=2, row=3, sticky="W", padx=pad, pady=pad)
 
         # Video bitrate
@@ -136,7 +135,7 @@ class AddMappingDialog(simpledialog.Dialog):
                                                values=tuple((str(x / 10) for x in range(1, 81))))
         self.video_bitrate_label2 = ttk.Label(frame, text="Mbps")
         self.video_bitrate_label.grid(column=0, row=4, sticky="W", padx=pad, pady=pad)
-        self.video_bitrate_input.grid(column=1, row=4, sticky="W", pady=pad, padx=pad)
+        self.video_bitrate_input.grid(column=1, row=4, sticky="W", columnspan=2, pady=pad, padx=pad)
         self.video_bitrate_label2.grid(column=2, row=4, sticky="W", padx=pad, pady=pad)
 
         # Video name postfix
@@ -161,13 +160,21 @@ class AddMappingDialog(simpledialog.Dialog):
             text="Encoding preset is always on placebo for smallest file size.")
         self.video_encoding_preset_label.grid(column=0, row=7, padx=pad, pady=pad, sticky="W")
 
+        # Frames per second
+        self.fps_label = ttk.Label(frame, text="Output FPS")
+        self.fps_textvar = tk.IntVar()
+        self.fps_textvar.set(30)
+        self.fps = ttk.Spinbox(frame, textvariable=self.fps_textvar, from_=1, to=144)
+        self.fps_label.grid(column=0, row=8, sticky="W", padx=pad, pady=pad)
+        self.fps.grid(column=1, row=8, sticky="W", padx=pad, pady=pad)
+
         # Configuration name
         self.config_name_label = ttk.Label(frame, text="Unique configuration name: ")
         self.config_name_strvar = tk.StringVar()
         self.config_name_strvar.set("My SomeProfile")
         self.config_name = ttk.Entry(frame, textvariable=self.config_name_strvar)
-        self.config_name_label.grid(column=0, row=8, sticky="W", padx=pad, pady=pad)
-        self.config_name.grid(column=1, row=8, sticky="W", padx=pad, pady=pad)
+        self.config_name_label.grid(column=0, row=9, sticky="W", padx=pad, pady=pad)
+        self.config_name.grid(column=1, row=9, sticky="W", padx=pad, pady=pad)
 
 
 class JobsContainer(ttk.Frame):
@@ -177,8 +184,8 @@ class JobsContainer(ttk.Frame):
         self.jobs = []
 
     def initiate_jobs(self, event=None, job_runner: JobRunner = None):
+        self.scan()
         job_runner.run_all(self.jobs)
-        self.jobs = []
 
     def scan(self):
         self.free_job(*self.jobs)

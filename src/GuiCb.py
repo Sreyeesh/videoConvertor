@@ -2,7 +2,7 @@ import threading
 import tkinter
 from threading import Lock
 
-from compression import reduce_dem_all, recode
+from compression import recode
 from src.DirMapper import DirMapper
 from src.DirsSettings import DirsSettings
 from src.FTPAwareDirMapper import FTAwareDirMapper
