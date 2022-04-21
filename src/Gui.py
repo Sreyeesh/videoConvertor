@@ -189,6 +189,7 @@ class JobsContainer(ttk.Frame):
 
     def scan(self):
         self.free_job(*self.jobs)
+        self.jobs = []
         settings = DirsSettings("settings.json").get_settings()
         mappings = FTAwareDirMapper(settings).get_dir_mappings()
         mappings = [x for x in mappings if not x[1].exists()]
