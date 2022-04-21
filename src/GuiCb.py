@@ -5,7 +5,7 @@ from threading import Lock
 from compression import recode
 from src.DirMapper import DirMapper
 from src.DirsSettings import DirsSettings
-from src.FTPAwareDirMapper import FTAwareDirMapper
+from src.FTAwareDirMapper import FTAwareDirMapper
 from src.ProgressBarUpdatingLogger import ProgressBarUpdatingLogger
 
 
@@ -34,7 +34,7 @@ class JobRunner:
     def _run_all(self, jobs):
         print("_run_all")
         settings = DirsSettings('settings.json').get_settings()
-        d_map = DirMapper(settings)
+        d_map = FTAwareDirMapper(settings)
 
         # Filter only those jobs for which target doesn't exist.
         d_map = [x for x in d_map.get_dir_mappings() if not x[1].exists()]

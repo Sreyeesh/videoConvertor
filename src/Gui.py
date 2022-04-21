@@ -8,7 +8,7 @@ from tkinter import simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
-from src.DirMapper import DirMapper
+from src.FTAwareDirMapper import FTAwareDirMapper
 from src.DirsSettings import DirsSettings
 from src.GuiCb import JobRunner
 
@@ -190,7 +190,7 @@ class JobsContainer(ttk.Frame):
     def scan(self):
         self.free_job(*self.jobs)
         settings = DirsSettings("settings.json").get_settings()
-        mappings = DirMapper(settings).get_dir_mappings()
+        mappings = FTAwareDirMapper(settings).get_dir_mappings()
         mappings = [x for x in mappings if not x[1].exists()]
         self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0) for x in mappings]
         for i in range(len(self.jobs)):
