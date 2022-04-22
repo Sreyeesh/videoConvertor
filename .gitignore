@@ -5,3 +5,5 @@ data/samples/output
 settings.json
 *.DS_Store*
 data/samples/inputs
+venv2
+*.DS_Store
