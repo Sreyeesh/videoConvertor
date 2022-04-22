@@ -183,7 +183,7 @@ class JobsContainer(ttk.Frame):
         super(JobsContainer, self).__init__(container)
         self.jobs = []
 
-    def initiate_jobs(self, event=None, job_runner: JobRunner = None):
+    def initiate_jobs(self, event, job_runner: JobRunner):
         self.scan()
         job_runner.run_all(self.jobs)
 
@@ -195,7 +195,7 @@ class JobsContainer(ttk.Frame):
         mappings = [x for x in mappings if not x[1].exists()]
         self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0) for x in mappings]
         for i in range(len(self.jobs)):
-            self.jobs[i].grid(column=0, row=i + 1, columnspan=4)
+            self.jobs[i].grid(column=0, row=i+1, sticky="W")
 
     def free_job(self, *jobs):
         for job in jobs:
@@ -214,31 +214,30 @@ class OpenFolderButton(ttk.Button):
         super(OpenFolderButton, self).__init__(*args, **kwargs)
 
 
-class JobGauge(ttk.Floodgauge):
+class JobGauge(ttk.Meter):
 
     def __init__(self, *args, **kwargs):
-        super(JobGauge, self).__init__(*args, **kwargs, bootstyle=INFO,
-                                       font=(None, 13, 'bold'))
-
+        super(JobGauge, self).__init__(*args, **kwargs,
+                                       metersize=60,
+                                       padding=5,
+                                       metertype="full",
+                                       showtext=False,
+                                       bootstyle=INFO)
     def update_gauge(self, val):
-        self.configure(value=val, mask=f"{val:.1f}%")
+        self.configure(amountused=int(val))
 
 
 class Job(ttk.Frame):
 
     def __init__(self, from_file: str, to_file: str, percent: int, *args, **kwargs):
         super().__init__(*args, **kwargs, padding=(10, 10, 10, 10))
-        self.percent = percent
-        self.to_file = to_file
-        self.from_file = from_file
-
         self.open_folder_button = OpenFolderButton(master=self, text="Open Source Folder")
         self.open_folder_button.grid(column=0, row=0, sticky="NS")
 
         self.open_folder_button = OpenFolderButton(master=self, text="Open Target Folder")
         self.open_folder_button.grid(column=1, row=0, sticky="NS")
 
-        self.gauge = JobGauge(master=self, mask=f"{percent:.1f}%")
+        self.gauge = JobGauge(master=self)
         self.gauge.grid(column=2, row=0, sticky="NS")
 
         self.description = ttk.Label(master=self, text=f"{from_file} => {to_file}",
@@ -246,7 +245,6 @@ class Job(ttk.Frame):
                                      padding=(20, 0, 0, 0))
         self.description.grid(column=3, row=0, sticky="NS")
 
-        self.gauge.update_gauge(percent)
 
 
 class VideoConvertor(tk.Tk):
@@ -265,6 +263,6 @@ class VideoConvertor(tk.Tk):
         self.jobs.grid(column=0, row=1)
 
         self.job_runner = JobRunner()
-        self.bind("<<RunAll>>", lambda ev: self.jobs.initiate_jobs(job_runner=self.job_runner))
+        self.bind("<<RunAll>>", lambda ev: self.jobs.initiate_jobs(ev, job_runner=self.job_runner))
         self.bind("<<Scan>>", lambda ev: self.jobs.scan())
         self.bind("<<Quit>>", lambda ev: self.destroy())

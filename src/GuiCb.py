@@ -17,7 +17,6 @@ class JobRunner:
 
     def run_all(self, jobs):
         if not self._t_worker or self._work_is_done:
-            print("threading")
             if self._work_is_done:
                 self._t_worker.join()
 
@@ -25,21 +24,19 @@ class JobRunner:
                 "jobs": jobs
             })
             self._t_worker.start()
-        print("returning")
 
     @property
     def not_working(self):
         return self._work_is_done
 
     def _run_all(self, jobs):
-        print("_run_all")
         settings = DirsSettings('settings.json').get_settings()
         d_map = FTAwareDirMapper(settings)
 
         # Filter only those jobs for which target doesn't exist.
         d_map = [x for x in d_map.get_dir_mappings() if not x[1].exists()]
         for i, d in enumerate(d_map):
-            logger = ProgressBarUpdatingLogger(jobs[i].gauge.update_gauge)
+            logger = ProgressBarUpdatingLogger(jobs[i].gauge.update_gauge, bars=("t",))
             recode(str(d[0]), str(d[1]), d[2], logger)
 
         self._work_is_done = True
