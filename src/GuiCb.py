@@ -1,9 +1,8 @@
 import threading
-import tkinter
-from threading import Lock
 
-from compression import recode
-from src.DirMapper import DirMapper
+from ttkbootstrap import SUCCESS
+
+from src.Compression import recode
 from src.DirsSettings import DirsSettings
 from src.FTAwareDirMapper import FTAwareDirMapper
 from src.ProgressBarUpdatingLogger import ProgressBarUpdatingLogger
@@ -38,6 +37,7 @@ class JobRunner:
         for i, d in enumerate(d_map):
             logger = ProgressBarUpdatingLogger(jobs[i].gauge.update_gauge, bars=("t",))
             recode(str(d[0]), str(d[1]), d[2], logger)
+            jobs[i].gauge.configure(bootstyle=SUCCESS)
 
         self._work_is_done = True
 
