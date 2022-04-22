@@ -4,3 +4,4 @@ venv
 data/samples/output
 settings.json
 *.DS_Store*
+data/samples/inputs

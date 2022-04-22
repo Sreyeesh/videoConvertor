@@ -22,32 +22,33 @@ class FTAwareDirMapper(DirMapper):
         :argument ft is an IntFlag enum. To select several filetypes do bitwise or.
                   For example obj.get_dir_mappings(FileType.Video | Filetype.Image)
         """
-        ret = super(FTAwareDirMapper, self).get_dir_mappings()
+        tmp = super(FTAwareDirMapper, self).get_dir_mappings()
+        ret = []
         if ft & FileType.Video:
-            ret += filter(lambda x: FTAwareDirMapper.is_video_file(str(x[0])), ret)
+            ret += filter(lambda x: FTAwareDirMapper.is_video_file(str(x[0])), tmp)
         if ft & FileType.Audio:
-            ret += filter(lambda x: FTAwareDirMapper.is_audio_file(str(x[0])), ret)
+            ret += filter(lambda x: FTAwareDirMapper.is_audio_file(str(x[0])), tmp)
         if ft & FileType.Image:
-            ret += filter(lambda x: FTAwareDirMapper.is_image_file(str(x[0])), ret)
+            ret += filter(lambda x: FTAwareDirMapper.is_image_file(str(x[0])), tmp)
         return ret
 
     @staticmethod
     def is_video_file(filename: str) -> bool:
-        parts = filename.split()
+        parts = filename.split(".")
         if parts[-1].lower() in ["avi", "mov", "mp4", "wmv", "mkv", "webm"]:
             return True
         return False
 
     @staticmethod
     def is_audio_file(filename: str) -> bool:
-        parts = filename.split()
+        parts = filename.split(".")
         if parts[-1].lower() in ["mp3", "wav", "ogg"]:
             return True
         return False
 
     @staticmethod
     def is_image_file(filename: str):
-        parts = filename.split()
+        parts = filename.split(".")
         if parts[-1].lower in ["jpg", "png", "gif", "apng", "bmp", "raw", "tiff", "psd",
                                "cr2", "exr"]:
             return True
