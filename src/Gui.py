@@ -1,8 +1,6 @@
 import os.path
-import threading
+import platform
 import tkinter as tk
-from dataclasses import dataclass
-from threading import Lock
 from tkinter import filedialog
 from tkinter import simpledialog
 import ttkbootstrap as ttk
@@ -193,9 +191,9 @@ class JobsContainer(ttk.Frame):
         settings = DirsSettings("settings.json").get_settings()
         mappings = FTAwareDirMapper(settings).get_dir_mappings()
         mappings = [x for x in mappings if not x[1].exists()]
-        self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0) for x in mappings]
+        self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0, master=self) for x in mappings]
         for i in range(len(self.jobs)):
-            self.jobs[i].grid(column=0, row=i+1, sticky="W")
+            self.jobs[i].pack(side="top", anchor="w")
 
     def free_job(self, *jobs):
         for job in jobs:
@@ -223,6 +221,7 @@ class JobGauge(ttk.Meter):
                                        metertype="full",
                                        showtext=False,
                                        bootstyle=INFO)
+
     def update_gauge(self, val):
         self.configure(amountused=int(val))
 
@@ -242,9 +241,8 @@ class Job(ttk.Frame):
 
         self.description = ttk.Label(master=self, text=f"{from_file} => {to_file}",
                                      font=(None, 18, "normal"),
-                                     padding=(20, 0, 0, 0))
+                                     padding=(10, 0, 0, 0))
         self.description.grid(column=3, row=0, sticky="NS")
-
 
 
 class VideoConvertor(tk.Tk):
@@ -254,15 +252,43 @@ class VideoConvertor(tk.Tk):
         style = ttk.Style("darkly")
 
         self.title("VideoConvertor")
-        self.geometry("1024x768")
 
         self.menu_bar = MenuBar(self)
-        self.menu_bar.grid(column=0, row=0, sticky="EW")
+        self.menu_bar.pack(side="top", anchor="nw", fill="none", pady=(0, 10))
+        self.scrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
 
-        self.jobs = JobsContainer(self)
-        self.jobs.grid(column=0, row=1)
+        # Scrollable Frame
+        self.canvas = tk.Canvas(self)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollable_frame.bind("<Configure>",
+                                   lambda ev: self.canvas.configure(
+                                       scrollregion=self.canvas.bbox("all")
+                                   ))
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.configure(command=self.canvas.yview)
+
+        self.jobs = JobsContainer(self.scrollable_frame)
+        self.scrollbar.pack(side="right", fill=ttk.Y)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.jobs.pack(side="left")
+
+        self.geometry("1024x400")
 
         self.job_runner = JobRunner()
         self.bind("<<RunAll>>", lambda ev: self.jobs.initiate_jobs(ev, job_runner=self.job_runner))
         self.bind("<<Scan>>", lambda ev: self.jobs.scan())
         self.bind("<<Quit>>", lambda ev: self.destroy())
+        match platform.system():
+            case "Windows":
+                self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(-(ev.delta // 80),
+                                                                              what="units"))
+            case "Linux":
+                self.bind("Button-4"), lambda ev: self.canvas.yview_scroll(ev.delta // 80,
+                                                                           what="units")
+                self.bind("Button-5"), lambda ev: self.canvas.yview_scroll(-ev.delta // 80,
+                                                                           what="units")
+            case _:  # Mac Os
+                self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(ev.delta,
+                                                                              what="units"))
+
