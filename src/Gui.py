@@ -6,6 +6,7 @@ from tkinter import simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
+from src.Auxialiry import get_settings_json_path
 from src.FTAwareDirMapper import FTAwareDirMapper
 from src.DirsSettings import DirsSettings
 from src.GuiCb import JobRunner
@@ -77,7 +78,7 @@ class AddMappingDialog(simpledialog.Dialog):
         self.bind("<Escape>", lambda event: self.cancel_pressed())
 
     def ok_pressed(self):
-        d = DirsSettings("settings.json")
+        d = DirsSettings(get_settings_json_path())
         d.save_new_entry(self.get_settings())
         self.destroy()
 
@@ -188,7 +189,7 @@ class JobsContainer(ttk.Frame):
     def scan(self):
         self.free_job(*self.jobs)
         self.jobs = []
-        settings = DirsSettings("settings.json").get_settings()
+        settings = DirsSettings(get_settings_json_path()).get_settings()
         mappings = FTAwareDirMapper(settings).get_dir_mappings()
         mappings = [x for x in mappings if not x[1].exists()]
         self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0, master=self) for x in mappings]
@@ -291,4 +292,5 @@ class VideoConvertor(tk.Tk):
             case _:  # Mac Os
                 self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(ev.delta,
                                                                               what="units"))
+
 

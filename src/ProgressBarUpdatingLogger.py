@@ -1,4 +1,4 @@
-from proglog import TqdmProgressBarLogger, ProgressBarLogger
+from proglog import ProgressBarLogger
 
 
 class ProgressBarUpdatingLogger(ProgressBarLogger):
