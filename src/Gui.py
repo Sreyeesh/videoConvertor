@@ -330,5 +330,3 @@ class VideoConvertor(tk.Tk):
             case _:  # Mac Os
                 self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(ev.delta,
                                                                               what="units"))
-
-

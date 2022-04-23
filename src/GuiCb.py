@@ -1,6 +1,7 @@
 import threading
 
 from ttkbootstrap import SUCCESS
+from ttkbootstrap.toast import ToastNotification
 
 from src.Compression import recode
 from src.DirsSettings import DirsSettings
@@ -41,4 +42,13 @@ class JobRunner:
             jobs[i].gauge.configure(bootstyle=SUCCESS)
 
         self._work_is_done = True
+        show_completion_notification()
 
+
+def show_completion_notification():
+    toast = ToastNotification(
+        title="VideoConvertor is ready.",
+        message="Wee! VideoConvertor has completed all of it's tasks.",
+        duration=15000
+    )
+    toast.show_toast()
