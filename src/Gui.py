@@ -104,7 +104,7 @@ class AddMappingDialog(simpledialog.Dialog):
             "output_file_postfix": str(self.video_name_postfix.get()),
             "output_video_resolution": self.video_res.get(),
             "output_fps": self.fps_textvar.get(),
-            "name": self.config_name_strvar.get()
+            #"name": self.config_name_strvar.get()
         }
 
     def buttonbox(self):
@@ -206,12 +206,12 @@ class AddMappingDialog(simpledialog.Dialog):
         self.fps.grid(column=1, row=8, sticky="W", padx=pad, pady=pad)
 
         # Configuration name
-        self.config_name_label = ttk.Label(frame, text="Unique configuration name: ")
-        self.config_name_strvar = tk.StringVar()
-        self.config_name_strvar.set("My SomeProfile")
-        self.config_name = ttk.Entry(frame, textvariable=self.config_name_strvar)
-        self.config_name_label.grid(column=0, row=9, sticky="W", padx=pad, pady=pad)
-        self.config_name.grid(column=1, row=9, sticky="W", padx=pad, pady=pad)
+        # self.config_name_label = ttk.Label(frame, text="Unique configuration name: ")
+        # self.config_name_strvar = tk.StringVar()
+        # self.config_name_strvar.set("My SomeProfile")
+        # self.config_name = ttk.Entry(frame, textvariable=self.config_name_strvar)
+        # self.config_name_label.grid(column=0, row=9, sticky="W", padx=pad, pady=pad)
+        # self.config_name.grid(column=1, row=9, sticky="W", padx=pad, pady=pad)
 
 
 class JobsContainer(ttk.Frame):

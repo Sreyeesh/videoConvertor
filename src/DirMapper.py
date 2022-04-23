@@ -38,8 +38,7 @@ class DirMapper:
                 if file.is_file():
                     fname = Path(file).parts[-1]
                     new_fname = (".".join(fname.split(".")[:-1])
-                                 + enc_settings.get("output_file_postfix",
-                                                    enc_settings["name"].lower())
+                                 + enc_settings.get("output_file_postfix")
                                  + "." + enc_settings["out_ftype"])
                     ret.append((
                         Path(in_dir) / Path(fname),
