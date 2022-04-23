@@ -1,7 +1,6 @@
 # Todo list
 
-- Fix add mapping form validation.
 - Add scrollbar to Remove Mapping... dialog's Listbox
-- Add filename suffix to remove-mapping dialog to distinguis between mappings
-    where source and dest directories are the same.
+- Fix job buttons open dest/src dir.
+- Fix add mapping kbps/Mbps labels being pushed to left when dirs are selected.
 

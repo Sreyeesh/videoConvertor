@@ -1,6 +1,7 @@
 import os.path
 import platform
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog
 from tkinter import simpledialog
 import ttkbootstrap as ttk
@@ -53,8 +54,8 @@ class RemoveMappingDialog(simpledialog.Dialog):
     def body(self, master) -> None:
         self.list_box_selected = tk.StringVar()
         self.list_box = tk.Listbox(self, height=20, width=230)
-        self.values = [f"{x['in_dir']} -> {x['out_dir']}" for x in DirsSettings(
-            get_settings_json_path()).get_settings()]
+        self.values = [f"{x['in_dir']} -> {x['out_dir']}, suffix: {x['output_file_postfix']}"
+                       for x in DirsSettings(get_settings_json_path()).get_settings()]
         self.list_box.insert(0, *self.values)
         self.button = ttk.Button(self, text="Delete", command=self._delete_selected)
         self.list_box.pack(side="top", anchor="nw", pady=5, padx=5)
@@ -104,7 +105,7 @@ class AddMappingDialog(simpledialog.Dialog):
             "output_file_postfix": str(self.video_name_postfix.get()),
             "output_video_resolution": self.video_res.get(),
             "output_fps": self.fps_textvar.get(),
-            #"name": self.config_name_strvar.get()
+            # "name": self.config_name_strvar.get()
         }
 
     def buttonbox(self):
@@ -116,12 +117,27 @@ class AddMappingDialog(simpledialog.Dialog):
         self.bind("<Escape>", lambda event: self.cancel_pressed())
 
     def ok_pressed(self):
-        d = DirsSettings(get_settings_json_path())
-        d.save_new_entry(self.get_settings())
-        self.destroy()
+        if self._is_valid():
+            d = DirsSettings(get_settings_json_path())
+            d.save_new_entry(self.get_settings())
+            self.destroy()
+        else:
+            self.warning = ttk.Label(
+                master=self,
+                text="Please re-check that all form fields have been filled in.",
+                style=DANGER
+            )
+            self.warning.pack()
 
     def cancel_pressed(self):
         self.destroy()
+
+    def _is_valid(self):
+        if (Path(self.in_dir_text_var.get()).is_dir()
+                and Path(self.out_dir_text_var.get()).is_dir()
+                and self.video_res.get() != ""):
+            return True
+        return False
 
     def body(self, frame):
         pad = 5
@@ -204,14 +220,6 @@ class AddMappingDialog(simpledialog.Dialog):
         self.fps = ttk.Spinbox(frame, textvariable=self.fps_textvar, from_=1, to=144)
         self.fps_label.grid(column=0, row=8, sticky="W", padx=pad, pady=pad)
         self.fps.grid(column=1, row=8, sticky="W", padx=pad, pady=pad)
-
-        # Configuration name
-        # self.config_name_label = ttk.Label(frame, text="Unique configuration name: ")
-        # self.config_name_strvar = tk.StringVar()
-        # self.config_name_strvar.set("My SomeProfile")
-        # self.config_name = ttk.Entry(frame, textvariable=self.config_name_strvar)
-        # self.config_name_label.grid(column=0, row=9, sticky="W", padx=pad, pady=pad)
-        # self.config_name.grid(column=1, row=9, sticky="W", padx=pad, pady=pad)
 
 
 class JobsContainer(ttk.Frame):
