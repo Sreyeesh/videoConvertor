@@ -1,13 +1,14 @@
 import os.path
-import threading
+import platform
+import subprocess
 import tkinter as tk
-from dataclasses import dataclass
-from threading import Lock
+from pathlib import Path
 from tkinter import filedialog
 from tkinter import simpledialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 
+from src.Auxialiry import get_settings_json_path
 from src.FTAwareDirMapper import FTAwareDirMapper
 from src.DirsSettings import DirsSettings
 from src.GuiCb import JobRunner
@@ -27,15 +28,53 @@ class MenuBar(ttk.Frame):
         self.run_button.grid(column=1, row=0)
 
         self.add_mapping_button = MenuButton(master=self,
-                                             text="Add Mapping",
+                                             text="Add Mapping...",
                                              command=lambda: AddMappingDialog(
                                                  self,
-                                                 "Add mapping.."))
+                                                 "Add Mapping"))
         self.add_mapping_button.grid(column=2, row=0)
+
+        self.remove_mapping_button = MenuButton(master=self,
+                                                text="Remove Mapping...",
+                                                command=lambda: RemoveMappingDialog(
+                                                    self,
+                                                    "Remove Mapping"
+                                                ))
+        self.remove_mapping_button.grid(column=3, row=0)
 
         self.quit_button = MenuButton(master=self, text="Quit",
                                       command=lambda: self.event_generate("<<Quit>>"))
-        self.quit_button.grid(column=3, row=0)
+        self.quit_button.grid(column=4, row=0)
+
+
+class RemoveMappingDialog(simpledialog.Dialog):
+
+    def __init__(self, parent, title):
+        super().__init__(parent, title)
+
+    def body(self, master) -> None:
+        self.list_box_selected = tk.StringVar()
+        self.list_box = tk.Listbox(self, height=20, width=230)
+        self.values = [f"{x['in_dir']} -> {x['out_dir']}, suffix: {x['output_file_postfix']}"
+                       for x in DirsSettings(get_settings_json_path()).get_settings()]
+        self.list_box.insert(0, *self.values)
+        self.button = ttk.Button(self, text="Delete", command=self._delete_selected)
+        self.list_box.pack(side="top", anchor="nw", pady=5, padx=5)
+        self.button.pack(side="top", pady=5, padx=5)
+
+        self.close = ttk.Button(self, text="Close", command=self.destroy).pack()
+
+    def _delete_selected(self):
+        indexes = self.list_box.curselection()
+        for index in indexes:
+            dirs_settings = DirsSettings(get_settings_json_path())
+            settings = dirs_settings.get_settings()
+            del settings[index]
+            dirs_settings.save_settings(settings)
+            self.list_box.delete(index)
+
+    def buttonbox(self) -> None:
+        pass
 
 
 class AddMappingDialog(simpledialog.Dialog):
@@ -67,7 +106,7 @@ class AddMappingDialog(simpledialog.Dialog):
             "output_file_postfix": str(self.video_name_postfix.get()),
             "output_video_resolution": self.video_res.get(),
             "output_fps": self.fps_textvar.get(),
-            "name": self.config_name_strvar.get()
+            # "name": self.config_name_strvar.get()
         }
 
     def buttonbox(self):
@@ -79,12 +118,27 @@ class AddMappingDialog(simpledialog.Dialog):
         self.bind("<Escape>", lambda event: self.cancel_pressed())
 
     def ok_pressed(self):
-        d = DirsSettings("settings.json")
-        d.save_new_entry(self.get_settings())
-        self.destroy()
+        if self._is_valid():
+            d = DirsSettings(get_settings_json_path())
+            d.save_new_entry(self.get_settings())
+            self.destroy()
+        else:
+            self.warning = ttk.Label(
+                master=self,
+                text="Please re-check that all form fields have been filled in.",
+                style=DANGER
+            )
+            self.warning.pack()
 
     def cancel_pressed(self):
         self.destroy()
+
+    def _is_valid(self):
+        if (Path(self.in_dir_text_var.get()).is_dir()
+                and Path(self.out_dir_text_var.get()).is_dir()
+                and self.video_res.get() != ""):
+            return True
+        return False
 
     def body(self, frame):
         pad = 5
@@ -168,14 +222,6 @@ class AddMappingDialog(simpledialog.Dialog):
         self.fps_label.grid(column=0, row=8, sticky="W", padx=pad, pady=pad)
         self.fps.grid(column=1, row=8, sticky="W", padx=pad, pady=pad)
 
-        # Configuration name
-        self.config_name_label = ttk.Label(frame, text="Unique configuration name: ")
-        self.config_name_strvar = tk.StringVar()
-        self.config_name_strvar.set("My SomeProfile")
-        self.config_name = ttk.Entry(frame, textvariable=self.config_name_strvar)
-        self.config_name_label.grid(column=0, row=9, sticky="W", padx=pad, pady=pad)
-        self.config_name.grid(column=1, row=9, sticky="W", padx=pad, pady=pad)
-
 
 class JobsContainer(ttk.Frame):
 
@@ -190,12 +236,12 @@ class JobsContainer(ttk.Frame):
     def scan(self):
         self.free_job(*self.jobs)
         self.jobs = []
-        settings = DirsSettings("settings.json").get_settings()
+        settings = DirsSettings(get_settings_json_path()).get_settings()
         mappings = FTAwareDirMapper(settings).get_dir_mappings()
         mappings = [x for x in mappings if not x[1].exists()]
-        self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0) for x in mappings]
+        self.jobs = [Job(str(x[0]), str(x[1]), master=self) for x in mappings]
         for i in range(len(self.jobs)):
-            self.jobs[i].grid(column=0, row=i+1, sticky="W")
+            self.jobs[i].pack(side="top", anchor="w")
 
     def free_job(self, *jobs):
         for job in jobs:
@@ -223,28 +269,64 @@ class JobGauge(ttk.Meter):
                                        metertype="full",
                                        showtext=False,
                                        bootstyle=INFO)
+
     def update_gauge(self, val):
         self.configure(amountused=int(val))
 
 
 class Job(ttk.Frame):
 
-    def __init__(self, from_file: str, to_file: str, percent: int, *args, **kwargs):
+    def __init__(self, from_file: str, to_file: str, *args, **kwargs):
         super().__init__(*args, **kwargs, padding=(10, 10, 10, 10))
-        self.open_folder_button = OpenFolderButton(master=self, text="Open Source Folder")
+        self.open_folder_button = OpenFolderButton(
+            master=self, text="Open Source Folder"
+        )
         self.open_folder_button.grid(column=0, row=0, sticky="NS")
 
-        self.open_folder_button = OpenFolderButton(master=self, text="Open Target Folder")
-        self.open_folder_button.grid(column=1, row=0, sticky="NS")
+        self.open_target_button = OpenFolderButton(master=self, text="Open Target Folder")
+        self.open_target_button.grid(column=1, row=0, sticky="NS")
+        src = "..." + str(Path(from_file).parts[-1])
+
+        match platform.system():
+            case "Windows":
+                sep = os.path.pathsep
+                print("just src: ", from_file)
+                print("src: ", Path("/".join(Path(from_file).parts[:-1])))
+                print("dst: ", Path("/".join(Path(to_file).parts[:-1])))
+                self.open_folder_button.configure(
+                    command=lambda: subprocess.run(
+                        ["explorer.exe", Path("/".join(Path(from_file).parts[:-1]))],
+                        shell=True))
+                self.open_target_button.configure(
+                    command=lambda: subprocess.run(
+                        ["explorer.exe", Path("/".join(Path(to_file).parts[:-1]))],
+                        shell=True))
+            case "Linux":
+                self.open_folder_button.configure(
+                    command=lambda: subprocess.run(
+                        ["xdg-open", Path("/".join(Path(from_file).parts[:-1]))],
+                        shell=True))
+                self.open_target_button.configure(
+                    command=lambda: subprocess.run(
+                        ["xdg-open", Path("/".join(Path(to_file).parts[:-1]))],
+                        shell=True))
+            case _:
+                self.open_folder_button.configure(
+                    command=lambda: subprocess.run(
+                        ["open", Path("/".join(Path(from_file).parts[:-1]))],
+                        shell=True))
+                self.open_target_button.configure(
+                    command=lambda: subprocess.run(
+                        ["open", Path("/".join(Path(to_file).parts[:-1]))],
+                        shell=True))
 
         self.gauge = JobGauge(master=self)
         self.gauge.grid(column=2, row=0, sticky="NS")
 
-        self.description = ttk.Label(master=self, text=f"{from_file} => {to_file}",
+        self.description = ttk.Label(master=self, text=f"{src} => {to_file}",
                                      font=(None, 18, "normal"),
-                                     padding=(20, 0, 0, 0))
+                                     padding=(10, 0, 0, 0))
         self.description.grid(column=3, row=0, sticky="NS")
-
 
 
 class VideoConvertor(tk.Tk):
@@ -254,15 +336,42 @@ class VideoConvertor(tk.Tk):
         style = ttk.Style("darkly")
 
         self.title("VideoConvertor")
-        self.geometry("1024x768")
 
         self.menu_bar = MenuBar(self)
-        self.menu_bar.grid(column=0, row=0, sticky="EW")
+        self.menu_bar.pack(side="top", anchor="nw", fill="none", pady=(0, 10))
+        self.scrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
 
-        self.jobs = JobsContainer(self)
-        self.jobs.grid(column=0, row=1)
+        # Scrollable Frame
+        self.canvas = tk.Canvas(self)
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollable_frame.bind("<Configure>",
+                                   lambda ev: self.canvas.configure(
+                                       scrollregion=self.canvas.bbox("all")
+                                   ))
+        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.configure(command=self.canvas.yview)
+
+        self.jobs = JobsContainer(self.scrollable_frame)
+        self.scrollbar.pack(side="right", fill=ttk.Y)
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.jobs.pack(side="left")
+
+        self.geometry("1024x400")
 
         self.job_runner = JobRunner()
         self.bind("<<RunAll>>", lambda ev: self.jobs.initiate_jobs(ev, job_runner=self.job_runner))
         self.bind("<<Scan>>", lambda ev: self.jobs.scan())
         self.bind("<<Quit>>", lambda ev: self.destroy())
+        match platform.system():
+            case "Windows":
+                self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(-(ev.delta // 80),
+                                                                              what="units"))
+            case "Linux":
+                self.bind("Button-4"), lambda ev: self.canvas.yview_scroll(ev.delta // 80,
+                                                                           what="units")
+                self.bind("Button-5"), lambda ev: self.canvas.yview_scroll(-ev.delta // 80,
+                                                                           what="units")
+            case _:  # Mac Os
+                self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(ev.delta,
+                                                                              what="units"))
