@@ -26,15 +26,53 @@ class MenuBar(ttk.Frame):
         self.run_button.grid(column=1, row=0)
 
         self.add_mapping_button = MenuButton(master=self,
-                                             text="Add Mapping",
+                                             text="Add Mapping...",
                                              command=lambda: AddMappingDialog(
                                                  self,
-                                                 "Add mapping.."))
+                                                 "Add Mapping"))
         self.add_mapping_button.grid(column=2, row=0)
+
+        self.remove_mapping_button = MenuButton(master=self,
+                                                text="Remove Mapping...",
+                                                command=lambda: RemoveMappingDialog(
+                                                    self,
+                                                    "Remove Mapping"
+                                                ))
+        self.remove_mapping_button.grid(column=3, row=0)
 
         self.quit_button = MenuButton(master=self, text="Quit",
                                       command=lambda: self.event_generate("<<Quit>>"))
-        self.quit_button.grid(column=3, row=0)
+        self.quit_button.grid(column=4, row=0)
+
+
+class RemoveMappingDialog(simpledialog.Dialog):
+
+    def __init__(self, parent, title):
+        super().__init__(parent, title)
+
+    def body(self, master) -> None:
+        self.list_box_selected = tk.StringVar()
+        self.list_box = tk.Listbox(self, height=20, width=230)
+        self.values = [f"{x['in_dir']} -> {x['out_dir']}" for x in DirsSettings(
+            get_settings_json_path()).get_settings()]
+        self.list_box.insert(0, *self.values)
+        self.button = ttk.Button(self, text="Delete", command=self._delete_selected)
+        self.list_box.pack(side="top", anchor="nw", pady=5, padx=5)
+        self.button.pack(side="top", pady=5, padx=5)
+
+        self.close = ttk.Button(self, text="Close", command=self.destroy).pack()
+
+    def _delete_selected(self):
+        indexes = self.list_box.curselection()
+        for index in indexes:
+            dirs_settings = DirsSettings(get_settings_json_path())
+            settings = dirs_settings.get_settings()
+            del settings[index]
+            dirs_settings.save_settings(settings)
+            self.list_box.delete(index)
+
+    def buttonbox(self) -> None:
+        pass
 
 
 class AddMappingDialog(simpledialog.Dialog):
