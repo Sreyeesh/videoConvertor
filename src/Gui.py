@@ -1,5 +1,6 @@
 import os.path
 import platform
+import subprocess
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog
@@ -238,7 +239,7 @@ class JobsContainer(ttk.Frame):
         settings = DirsSettings(get_settings_json_path()).get_settings()
         mappings = FTAwareDirMapper(settings).get_dir_mappings()
         mappings = [x for x in mappings if not x[1].exists()]
-        self.jobs = [Job("..." + str(x[0].parts[-1]), str(x[1]), 0, master=self) for x in mappings]
+        self.jobs = [Job(str(x[0]), str(x[1]), master=self) for x in mappings]
         for i in range(len(self.jobs)):
             self.jobs[i].pack(side="top", anchor="w")
 
@@ -275,18 +276,54 @@ class JobGauge(ttk.Meter):
 
 class Job(ttk.Frame):
 
-    def __init__(self, from_file: str, to_file: str, percent: int, *args, **kwargs):
+    def __init__(self, from_file: str, to_file: str, *args, **kwargs):
         super().__init__(*args, **kwargs, padding=(10, 10, 10, 10))
-        self.open_folder_button = OpenFolderButton(master=self, text="Open Source Folder")
+        self.open_folder_button = OpenFolderButton(
+            master=self, text="Open Source Folder"
+        )
         self.open_folder_button.grid(column=0, row=0, sticky="NS")
 
-        self.open_folder_button = OpenFolderButton(master=self, text="Open Target Folder")
-        self.open_folder_button.grid(column=1, row=0, sticky="NS")
+        self.open_target_button = OpenFolderButton(master=self, text="Open Target Folder")
+        self.open_target_button.grid(column=1, row=0, sticky="NS")
+        src = "..." + str(Path(from_file).parts[-1])
+
+        match platform.system():
+            case "Windows":
+                sep = os.path.pathsep
+                print("just src: ", from_file)
+                print("src: ", Path("/".join(Path(from_file).parts[:-1])))
+                print("dst: ", Path("/".join(Path(to_file).parts[:-1])))
+                self.open_folder_button.configure(
+                    command=lambda: subprocess.run(
+                        ["explorer.exe", Path("/".join(Path(from_file).parts[:-1]))],
+                        shell=True))
+                self.open_target_button.configure(
+                    command=lambda: subprocess.run(
+                        ["explorer.exe", Path("/".join(Path(to_file).parts[:-1]))],
+                        shell=True))
+            case "Linux":
+                self.open_folder_button.configure(
+                    command=lambda: subprocess.run(
+                        ["xdg-open", Path("/".join(Path(from_file).parts[:-1]))],
+                        shell=True))
+                self.open_target_button.configure(
+                    command=lambda: subprocess.run(
+                        ["xdg-open", Path("/".join(Path(to_file).parts[:-1]))],
+                        shell=True))
+            case _:
+                self.open_folder_button.configure(
+                    command=lambda: subprocess.run(
+                        ["open", Path("/".join(Path(from_file).parts[:-1]))],
+                        shell=True))
+                self.open_target_button.configure(
+                    command=lambda: subprocess.run(
+                        ["open", Path("/".join(Path(to_file).parts[:-1]))],
+                        shell=True))
 
         self.gauge = JobGauge(master=self)
         self.gauge.grid(column=2, row=0, sticky="NS")
 
-        self.description = ttk.Label(master=self, text=f"{from_file} => {to_file}",
+        self.description = ttk.Label(master=self, text=f"{src} => {to_file}",
                                      font=(None, 18, "normal"),
                                      padding=(10, 0, 0, 0))
         self.description.grid(column=3, row=0, sticky="NS")
