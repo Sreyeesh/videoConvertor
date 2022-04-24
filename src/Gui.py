@@ -53,20 +53,42 @@ class RemoveMappingDialog(simpledialog.Dialog):
         super().__init__(parent, title)
 
     def body(self, master) -> None:
+        lb_container = ttk.Frame(master=self)
         self.list_box_selected = tk.StringVar()
-        self.list_box = tk.Listbox(self, height=20, width=230)
+        self.list_box = tk.Listbox(lb_container, height=20, width=230, selectmode="extended")
         self.values = [f"{x['in_dir']} -> {x['out_dir']}, suffix: {x['output_file_postfix']}"
                        for x in DirsSettings(get_settings_json_path()).get_settings()]
         self.list_box.insert(0, *self.values)
         self.button = ttk.Button(self, text="Delete", command=self._delete_selected)
-        self.list_box.pack(side="top", anchor="nw", pady=5, padx=5)
+
+        self.sb = ttk.Scrollbar(master=lb_container, orient=VERTICAL,
+                                command=self.list_box.yview)
+        self.list_box.configure(yscrollcommand=self.sb.set)
+
+        match platform.system():
+            case "Windows":
+                self.bind("<MouseWheel>", lambda ev: self.list_box.yview_scroll(-(ev.delta // 80),
+                                                                              what="units"))
+            case "Linux":
+                self.bind("Button-4"), lambda ev: self.list_box.yview_scroll(ev.delta // 80,
+                                                                           what="units")
+                self.bind("Button-5"), lambda ev: self.list_box.yview_scroll(-ev.delta // 80,
+                                                                           what="units")
+            case _:  # Mac Os
+                self.bind("<MouseWheel>", lambda ev: self.list_box.yview_scroll(ev.delta,
+                                                                              what="units"))
+        self.bind("<Delete>", lambda ev: self._delete_selected())
+
+        self.sb.pack(side="right", anchor="e", fill="y")
+        lb_container.pack(side="top", anchor="nw", pady=5, padx=5)
+        self.list_box.pack(side="top", anchor="nw")
         self.button.pack(side="top", pady=5, padx=5)
 
         self.close = ttk.Button(self, text="Close", command=self.destroy).pack()
 
     def _delete_selected(self):
         indexes = self.list_box.curselection()
-        for index in indexes:
+        for index in reversed(indexes):
             dirs_settings = DirsSettings(get_settings_json_path())
             settings = dirs_settings.get_settings()
             del settings[index]
@@ -289,10 +311,6 @@ class Job(ttk.Frame):
 
         match platform.system():
             case "Windows":
-                sep = os.path.pathsep
-                print("just src: ", from_file)
-                print("src: ", Path("/".join(Path(from_file).parts[:-1])))
-                print("dst: ", Path("/".join(Path(to_file).parts[:-1])))
                 self.open_folder_button.configure(
                     command=lambda: subprocess.run(
                         ["explorer.exe", Path("/".join(Path(from_file).parts[:-1]))],
