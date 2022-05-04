@@ -3,6 +3,7 @@ import platform
 import subprocess
 import tkinter as tk
 from pathlib import Path
+from tkinter import *
 from tkinter import filedialog
 from tkinter import simpledialog
 import ttkbootstrap as ttk
@@ -12,6 +13,7 @@ from src.Auxialiry import get_settings_json_path
 from src.FTAwareDirMapper import FTAwareDirMapper
 from src.DirsSettings import DirsSettings
 from src.GuiCb import JobRunner
+
 
 
 class MenuBar(ttk.Frame):
@@ -352,11 +354,15 @@ class VideoConvertor(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         style = ttk.Style("darkly")
-
-        self.title("VideoConvertor")
-
+        self.title("VideoConvertor!")    
+        Splash(self)
+        self.destroy
+        self.sleep
+        self.overrideredirect(True)
+        self.geometry("500x550")
+        self.iconbitmap('/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/thumbnails/video-icon-1.png')
         self.menu_bar = MenuBar(self)
-        self.menu_bar.pack(side="top", anchor="nw", fill="none", pady=(0, 10))
+        self.menu_bar.pack(side="top", anchor="nw", fill="none", pady=(0, 20))
         self.scrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
 
         # Scrollable Frame
@@ -375,7 +381,7 @@ class VideoConvertor(tk.Tk):
         self.canvas.pack(side="left", fill="both", expand=True)
         self.jobs.pack(side="left")
 
-        self.geometry("1024x400")
+        # self.geometry("200x200")
 
         self.job_runner = JobRunner()
         self.bind("<<RunAll>>", lambda ev: self.jobs.initiate_jobs(ev, job_runner=self.job_runner))
@@ -393,3 +399,15 @@ class VideoConvertor(tk.Tk):
             case _:  # Mac Os
                 self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(ev.delta,
                                                                               what="units"))
+   
+class Splash(simpledialog.Dialog):
+
+    def __init__(self, *args, **kwargs):
+        super(Splash, self).__init__(*args, **kwargs)
+
+    def body(self, master):
+        label = ttk.Label(master, text="VideoConvertor", font=("None", 18))
+        label.pack(pady=20)
+
+    def buttonbox(self):
+        pass
