@@ -355,12 +355,7 @@ class VideoConvertor(tk.Tk):
         super().__init__(*args, **kwargs)
         style = ttk.Style("darkly")
         self.title("VideoConvertor!")    
-        Splash(self)
-        self.destroy
-        self.sleep
         self.overrideredirect(True)
-        self.geometry("500x550")
-        self.iconbitmap('/Users/sreyeeshgarimella/Documents/videoConvertor/videoConvertor/data/samples/thumbnails/video-icon-1.png')
         self.menu_bar = MenuBar(self)
         self.menu_bar.pack(side="top", anchor="nw", fill="none", pady=(0, 20))
         self.scrollbar = ttk.Scrollbar(self, orient=ttk.VERTICAL)
@@ -381,7 +376,7 @@ class VideoConvertor(tk.Tk):
         self.canvas.pack(side="left", fill="both", expand=True)
         self.jobs.pack(side="left")
 
-        # self.geometry("200x200")
+        self.geometry("550x550")
 
         self.job_runner = JobRunner()
         self.bind("<<RunAll>>", lambda ev: self.jobs.initiate_jobs(ev, job_runner=self.job_runner))
@@ -400,14 +395,3 @@ class VideoConvertor(tk.Tk):
                 self.bind("<MouseWheel>", lambda ev: self.canvas.yview_scroll(ev.delta,
                                                                               what="units"))
    
-class Splash(simpledialog.Dialog):
-
-    def __init__(self, *args, **kwargs):
-        super(Splash, self).__init__(*args, **kwargs)
-
-    def body(self, master):
-        label = ttk.Label(master, text="VideoConvertor", font=("None", 18))
-        label.pack(pady=20)
-
-    def buttonbox(self):
-        pass

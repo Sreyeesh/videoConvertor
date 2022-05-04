@@ -9,7 +9,7 @@ def recode(in_file: str, out_file: str, settings, logger=None):
         print(settings["output_fps"])
         clip.write_videofile(out_file,
                              fps=int(settings["output_fps"]),
-                             audio_codec="libmp3lame",
+                             audio_codec="libvorbis",
                              audio_bitrate=str(settings["audio_bitrate_kbps"]) + "K",
                              preset="placebo",
                              threads=8,

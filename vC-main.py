@@ -5,5 +5,4 @@ from tkinter import *
 if __name__ == "__main__":
     enable_high_dpi_awareness()
     root_window = VideoConvertor()
-    # mainloop()
     root_window.mainloop()
